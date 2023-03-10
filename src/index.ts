@@ -1,9 +1,8 @@
 import * as path from 'path';
-import {
-  Content,
-  InMemoryContentRepository,
-  FileSystemContentRepository,
-} from './domain';
+import { Content } from './domain';
+import { FileSystemContentRepository } from './infrastructure/repositories';
+import { ReactRenderer, makeReactTemplate } from './infrastructure/renderers';
+import { PageTemplate } from './react/template';
 
 const child1: Content = {
   id: 'child1.md',
@@ -30,10 +29,13 @@ const repo = new FileSystemContentRepository({
   baseDirectory: path.resolve(__dirname, '..', 'src', 'content'),
 });
 
-(async () => {
-  await repo.writeContent(child1);
-  await repo.writeContent(child2);
-  await repo.writeContent(parent);
+const renderer = new ReactRenderer({
+  baseDirectory: path.resolve(__dirname, '..', 'html'),
+});
 
-  console.log(await repo.getContentTree('parent.md'));
+const template = makeReactTemplate(PageTemplate);
+
+(async () => {
+  const contentTree = await repo.getContentTree('parent.md');
+  renderer.render(contentTree, template);
 })();
